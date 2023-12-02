@@ -1,19 +1,51 @@
+*{
+    box-sizing: border-box;
+}
+
 body{
     margin: 0px;
     padding: 0px;
+    height: 100vh;
 }
 
 .block{
-    width: 50px;
-    height: 50px;
+    width: 20px;
+    height: 20px;
     background-color: black;
     flex-shrink: 0;
 }
 
 .row{
     display: flex;
+    width: fit-content;
 }
 
 .board-container{
-    border: 10px solid red;
+    overflow-y: visible;
+    overflow-x: visible;
+}
+
+.board-view{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: beige;
+    height: 100vh;
+}
+
+.container{
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+    position: fixed;
+    bottom: 20px;
+}
+
+.controls{
+    width: fit-content;
+    bottom: 20px;
+    left: calc(100vw / 2);
+    padding: 20px 100px;
+    background-color: red;
+    border-radius: 50px;
 }

@@ -1,5 +1,5 @@
-const rows = 100;
-const cols = 100;
+const rows = 30;
+const cols = 50;
 
 const board = document.getElementById("board");
 
@@ -19,6 +19,41 @@ function drawGrid() {
     }
 }
 
+function toggleColor(target){
+    
+    if (target.style.backgroundColor == "red"){
+        target.style.backgroundColor = "black"
+        return
+    }
+    
+    target.style.backgroundColor = "red"
+}
+
+
+
+document.getElementById("start").addEventListener("click", () =>{
+    startGameOfLife()
+})
+
+var shouldExit = false;
+
+document.getElementById("pause").addEventListener("click", () =>{
+    shouldExit = true;
+})
+
+document.getElementById("clear").addEventListener("click", () =>{
+    clearBoard()
+})
+
+
+function clearBoard(){
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            board.children[row].children[col].style.backgroundColor = "black"
+        }
+    }
+}
+
 function colorBlock(){
     var blocks = document.querySelectorAll(".block");
     blocks.forEach(block => {
@@ -29,15 +64,8 @@ function colorBlock(){
     })
 }
 
-function toggleColor(target){
-    
-    if (target.style.backgroundColor == "red"){
-        target.style.backgroundColor = "black"
-        return
-    }
-    
-    target.style.backgroundColor = "red"
-}
+drawGrid()
+colorBlock()
 
 function generateMatrix(target){
     let matrix = []
@@ -120,18 +148,7 @@ function updateBoard(target, future){
     }
 }
 
-drawGrid()
-colorBlock()
 
-document.getElementById("main").addEventListener("click", () =>{
-    startGameOfLife()
-})
-
-var shouldExit = false;
-
-document.getElementById("pause").addEventListener("click", () =>{
-    shouldExit = true;
-})
 
 function startGameOfLife(){
     var refreshId = setInterval(() => {
