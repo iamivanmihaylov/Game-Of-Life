@@ -15,45 +15,10 @@ const squareSize = 60; // Change this to adjust grid size
 let zoomLevel = 0.1;
 const minZoom = 0.3; // Set your minimum zoom level here
 
-function drawGrid(rows, cols) {
-  grid.destroyChildren();
-
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      const square = new Konva.Rect({
-        x: j * squareSize,
-        y: i * squareSize,
-        width: squareSize,
-        height: squareSize,
-        fill: 'white',
-        stroke: '#B8B8B8',
-        strokeWidth: 1,
-      });
-
-      square.on('click', () => {
-        if (square.fill() === 'white') {
-          square.fill('black');
-        } else {
-          square.fill('white');
-        }
-        layer.batchDraw();
-      });
-
-      grid.add(square);
-    }
-  }
-
-  grid.x(-200);
-
-  grid.scaleX(0.5);
-  grid.scaleY(0.5);
-
-
-  layer.add(grid);
-  layer.batchDraw();
-}
-
 drawGrid(60, 120);
+
+let lastPosX, lastPosY;
+let isDragging = false;
 
 stage.on('wheel', (e) => {
   e.evt.preventDefault();
@@ -87,18 +52,12 @@ stage.on('wheel', (e) => {
   layer.batchDraw();
 });
 
-// ... (Remaining code remains the same)
-
-let lastPosX, lastPosY;
-let isDragging = false;
-
 stage.on('mousedown touchstart', (e) => {
   const pos = stage.getPointerPosition();
   lastPosX = pos.x;
   lastPosY = pos.y;
   isDragging = true;
 });
-
 
 stage.on('mousemove touchmove', (e) => {
   if (isWithinGridBoundaries(lastPosX, lastPosY)){
@@ -147,7 +106,6 @@ function updateGrid(nextGen){
     index++;
   })
 }
-
 
 function nextGeneration(grid, M, N){
      
@@ -198,48 +156,6 @@ function nextGeneration(grid, M, N){
   return future
 }
 
-function drawNewGrid(matrix, x, y) {
-  grid.destroyChildren(); // Clear existing grid
-
-  const rows = matrix.length;
-  const cols = rows > 0 ? matrix[0].length : 0;
-
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      const color = matrix[i][j] === 1 ? 'black' : 'white';
-
-      const square = new Konva.Rect({
-        x: j * squareSize,
-        y: i * squareSize,
-        width: squareSize,
-        height: squareSize,
-        fill: color,
-        stroke: 'black',
-        strokeWidth: 1,
-      });
-
-      square.on('click', () => {
-        if (square.fill() === 'white') {
-          square.fill('black');
-        } else {
-          square.fill('white');
-        }
-        layer.batchDraw();
-      });
-
-      grid.add(square);
-    }
-  }
-
-  grid.x(x)
-  grid.y(x)
-
-  layer.add(grid);
-  layer.batchDraw();
-
-  
-}
-
 function generateMatrix(array, rows, cols) {
   var resultMatrix = [];
   var arrayIndex = 0;
@@ -264,4 +180,42 @@ function isWithinGridBoundaries(pX, pY) {
     pos.y >= pY &&
     pos.y <= pY + gridPos.height
   );
+}
+
+function drawGrid(rows, cols) {
+  grid.destroyChildren();
+
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const square = new Konva.Rect({
+        x: j * squareSize,
+        y: i * squareSize,
+        width: squareSize,
+        height: squareSize,
+        fill: 'white',
+        stroke: '#B8B8B8',
+        strokeWidth: 1,
+      });
+
+      square.on('click', () => {
+        if (square.fill() === 'white') {
+          square.fill('black');
+        } else {
+          square.fill('white');
+        }
+        layer.batchDraw();
+      });
+
+      grid.add(square);
+    }
+  }
+
+  grid.x(-200);
+
+  grid.scaleX(0.5);
+  grid.scaleY(0.5);
+
+
+  layer.add(grid);
+  layer.batchDraw();
 }
