@@ -1,28 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8" />
-    <title>Game of Life</title>
-</head>
-<body>
-    <div class="board-view">
-        <div class="board-container">
-            <div id="board"></div>
-        </div>
-    </div>
 
-    <div class="container">
-        <div class="controls">
-            <button id="start">Start</button>
-            <button id="pause">Pasue</button>
-            <button id="clear">Clear</button>
-        </div>
+
+<link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<html>
+  <head>
+    
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      #container {
+        width: 100%;
+        height: 100vh;
+        background-color: #EDEDED;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <div class="navigation">
+      <div class="cotrols">
+        <button class="arrow-left"></button>
+        <button id="start"><svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 202 202"><defs><style>.cls-1{fill:#303030;}.cls-2{fill:#404040;}.cls-3{fill:#7b7b7b;}</style></defs><circle class="cls-1" cx="101" cy="101" r="92.5"/><path class="cls-2" d="M1784,297a84,84,0,1,1-84,84,84,84,0,0,1,84-84m0-17a101,101,0,1,0,101,101,101.12,101.12,0,0,0-101-101Z" transform="translate(-1683 -280)"/><path class="cls-3" d="M1827.33,375a7.33,7.33,0,0,1,0,12.7l-29.21,16.86-29.21,16.87a7.34,7.34,0,0,1-11-6.35V347.6a7.33,7.33,0,0,1,11-6.35l29.21,16.86Z" transform="translate(-1683 -280)"/></svg></button>
+        <button class="arrow-right"></button>
+      </div>
     </div>
-    
-    
-    <script src="./script.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/konva@8.1.1/konva.min.js"></script>
+    <script src="script.js" defer></script>
+  </body>
 </html>
+

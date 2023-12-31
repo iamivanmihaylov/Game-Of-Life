@@ -1,166 +1,267 @@
-const rows = 30;
-const cols = 50;
+const stage = new Konva.Stage({
+  container: 'container',
+  width: window.innerWidth,
+  height: window.innerWidth,
+});
 
-const board = document.getElementById("board");
+const layer = new Konva.Layer();
+stage.add(layer);
 
-function drawGrid() {
-    for (let row = 0; row < rows; row++) {
-        const row = document.createElement("div");
-        row.classList.add("row")
+const grid = new Konva.Group({
+  draggable: true,
+});
 
-        for (let col = 0; col < cols; col++) {
-            const block = document.createElement("div");
-            block.classList.add("block")
+const squareSize = 60; // Change this to adjust grid size
+let zoomLevel = 0.1;
+const minZoom = 0.3; // Set your minimum zoom level here
 
-            row.appendChild(block)
+function drawGrid(rows, cols) {
+  grid.destroyChildren();
+
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const square = new Konva.Rect({
+        x: j * squareSize,
+        y: i * squareSize,
+        width: squareSize,
+        height: squareSize,
+        fill: 'white',
+        stroke: '#B8B8B8',
+        strokeWidth: 1,
+      });
+
+      square.on('click', () => {
+        if (square.fill() === 'white') {
+          square.fill('black');
+        } else {
+          square.fill('white');
         }
+        layer.batchDraw();
+      });
 
-        board.appendChild(row)
+      grid.add(square);
     }
+  }
+
+  grid.x(-200);
+
+  grid.scaleX(0.5);
+  grid.scaleY(0.5);
+
+
+  layer.add(grid);
+  layer.batchDraw();
 }
 
-function toggleColor(target){
+drawGrid(60, 120);
+
+stage.on('wheel', (e) => {
+  e.evt.preventDefault();
+  
+  const cursorPoint = stage.getPointerPosition();
+
+  const oldScale = grid.scaleX();
+
+  const mousePointTo = {
+    x: (cursorPoint.x - grid.x()) / oldScale,
+    y: (cursorPoint.y - grid.y()) / oldScale,
+  };
+
+  let newScale = oldScale;
+
+  if (e.evt.deltaY > 0) {
+    newScale = Math.max(oldScale * 0.9, minZoom);
+  } else {
+    newScale = Math.max(oldScale * 1.1, minZoom);
+  }
+
+  grid.scale({ x: newScale, y: newScale });
+
+  const newPos = {
+    x: cursorPoint.x - mousePointTo.x * newScale,
+    y: cursorPoint.y - mousePointTo.y * newScale,
+  };
+
+  grid.position(newPos);
+
+  layer.batchDraw();
+});
+
+// ... (Remaining code remains the same)
+
+let lastPosX, lastPosY;
+let isDragging = false;
+
+stage.on('mousedown touchstart', (e) => {
+  const pos = stage.getPointerPosition();
+  lastPosX = pos.x;
+  lastPosY = pos.y;
+  isDragging = true;
+});
+
+
+stage.on('mousemove touchmove', (e) => {
+  if (isWithinGridBoundaries(lastPosX, lastPosY)){
     
-    if (target.style.backgroundColor == "red"){
-        target.style.backgroundColor = "black"
-        return
-    }
-    
-    target.style.backgroundColor = "red"
+  if (!isDragging) {
+    return;
+  }
+
+  const pos = stage.getPointerPosition();
+  const dx = pos.x - lastPosX;
+  const dy = pos.y - lastPosY;
+
+  grid.x(grid.x() + dx / zoomLevel);
+  grid.y(grid.y() + dy / zoomLevel);
+
+  lastPosX = pos.x;
+  lastPosY = pos.y;
+
+  layer.batchDraw();
 }
 
+});
 
+stage.on('mouseup touchend', () => {
+  isDragging = false;
+});
 
 document.getElementById("start").addEventListener("click", () =>{
-    startGameOfLife()
-})
 
-var shouldExit = false;
+  setInterval(() => {
+    let matrix = generateMatrix(grid.getChildren(), 60, 120);
+    let rows = matrix.length;
+    let cols = matrix[0].length;
 
-document.getElementById("pause").addEventListener("click", () =>{
-    shouldExit = true;
-})
+    let nextGen = nextGeneration(matrix, rows, cols)
 
-document.getElementById("clear").addEventListener("click", () =>{
-    clearBoard()
-})
+    updateGrid(nextGen)
+  }, 150);
+});
 
-
-function clearBoard(){
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            board.children[row].children[col].style.backgroundColor = "black"
-        }
-    }
+function updateGrid(nextGen){
+  var singleLineArray = nextGen.flat(1)
+  var index = 0;
+  grid.getChildren().forEach(c => {
+    c.fill(singleLineArray[index] === 1 ? 'black' : 'white');
+    index++;
+  })
 }
 
-function colorBlock(){
-    var blocks = document.querySelectorAll(".block");
-    blocks.forEach(block => {
-        block.addEventListener('click', (event) => {
-            const currentBlock = event.target
-            toggleColor(currentBlock)
-        })
-    })
-}
-
-drawGrid()
-colorBlock()
-
-function generateMatrix(target){
-    let matrix = []
-    for (const row of target.children) {
-        let matrixRow = [];
-        for (const element of row.children) {
-            if (element.style.backgroundColor == "red"){
-                matrixRow.push(1);
-            }
-            else{
-                matrixRow.push(0)
-            }
-        }
-        
-        matrix.push(matrixRow)
-    }
-
-    return matrix
-}
 
 function nextGeneration(grid, M, N){
      
-    let future = new Array(M);
-    for(let i = 0; i < M; i++){
-        future[i] = new Array(N).fill(0);
-    }
- 
-    // Loop through every cell
-    for(let l=0;l<M;l++){
-        for(let m=0;m<N;m++){
-             
-            // finding no Of Neighbours that are alive
-            let aliveNeighbours = 0
-            for(let i = -1; i < 2; i++)
-            {
-                for(let j = -1; j < 2; j++)
-                {
-                    if ((l + i >= 0 && l + i < M) && (m + j >= 0 && m + j < N))
-                        aliveNeighbours += grid[l + i][m + j]
-                }
-            }
- 
-            // The cell needs to be subtracted from
-            // its neighbours as it was counted before
-            aliveNeighbours -= grid[l][m]
- 
-            // Implementing the Rules of Life
- 
-            // Cell is lonely and dies
-            if ((grid[l][m] == 1) && (aliveNeighbours < 2))
-                future[l][m] = 0
- 
-            // Cell dies due to over population
-            else if ((grid[l][m] == 1) && (aliveNeighbours > 3))
-                future[l][m] = 0
- 
-            // A new cell is born
-            else if ((grid[l][m] == 0) && (aliveNeighbours == 3))
-                future[l][m] = 1
- 
-            // Remains the same
-            else
-                future[l][m] = grid[l][m]
-        }
-    }
+  let future = new Array(M);
+  for(let i = 0; i < M; i++){
+      future[i] = new Array(N).fill(0);
+  }
 
-    return future
+  // Loop through every cell
+  for(let l=0;l<M;l++){
+      for(let m=0;m<N;m++){
+           
+          // finding no Of Neighbours that are alive
+          let aliveNeighbours = 0
+          for(let i = -1; i < 2; i++)
+          {
+              for(let j = -1; j < 2; j++)
+              {
+                  if ((l + i >= 0 && l + i < M) && (m + j >= 0 && m + j < N))
+                      aliveNeighbours += grid[l + i][m + j]
+              }
+          }
+
+          // The cell needs to be subtracted from
+          // its neighbours as it was counted before
+          aliveNeighbours -= grid[l][m]
+
+          // Implementing the Rules of Life
+
+          // Cell is lonely and dies
+          if ((grid[l][m] == 1) && (aliveNeighbours < 2))
+              future[l][m] = 0
+
+          // Cell dies due to over population
+          else if ((grid[l][m] == 1) && (aliveNeighbours > 3))
+              future[l][m] = 0
+
+          // A new cell is born
+          else if ((grid[l][m] == 0) && (aliveNeighbours == 3))
+              future[l][m] = 1
+
+          // Remains the same
+          else
+              future[l][m] = grid[l][m]
+      }
+  }
+
+  return future
 }
 
-function updateBoard(target, future){
-    for (let row = 0; row < future.length; row++) {
-        for (let col = 0; col < future.length; col++) {
-            if (future[row][col] == 1){
-                target.children[row].children[col].style.backgroundColor = "red"
-            }
-            else{
-                target.children[row].children[col].style.backgroundColor = "black"
-            }
+function drawNewGrid(matrix, x, y) {
+  grid.destroyChildren(); // Clear existing grid
+
+  const rows = matrix.length;
+  const cols = rows > 0 ? matrix[0].length : 0;
+
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const color = matrix[i][j] === 1 ? 'black' : 'white';
+
+      const square = new Konva.Rect({
+        x: j * squareSize,
+        y: i * squareSize,
+        width: squareSize,
+        height: squareSize,
+        fill: color,
+        stroke: 'black',
+        strokeWidth: 1,
+      });
+
+      square.on('click', () => {
+        if (square.fill() === 'white') {
+          square.fill('black');
+        } else {
+          square.fill('white');
         }
+        layer.batchDraw();
+      });
+
+      grid.add(square);
     }
+  }
+
+  grid.x(x)
+  grid.y(x)
+
+  layer.add(grid);
+  layer.batchDraw();
+
+  
 }
 
+function generateMatrix(array, rows, cols) {
+  var resultMatrix = [];
+  var arrayIndex = 0;
+  for (let row = 0; row < rows; row++){
+    var currRow = []
+    for (let col = 0; col < cols; col++){
+      array[arrayIndex].attrs.fill === 'black' ? currRow.push(1) : currRow.push(0);
+      arrayIndex++;
+    }
 
+    resultMatrix.push(currRow);
+  }
 
-function startGameOfLife(){
-    var refreshId = setInterval(() => {
-        const matrix = generateMatrix(board)
-        const nextGen = nextGeneration(matrix, rows, cols)
-        updateBoard(board, nextGen)
-        if (shouldExit){
-            shouldExit = false;
-            clearInterval(refreshId)
-        }
-    }, 200);
+  return resultMatrix; 
 }
 
-
-
+function isWithinGridBoundaries(pX, pY) {
+  const gridPos = grid.getClientRect();
+  return (
+    pos.x >= pX &&
+    pos.x <= pX + gridPos.width &&
+    pos.y >= pY &&
+    pos.y <= pY + gridPos.height
+  );
+}
