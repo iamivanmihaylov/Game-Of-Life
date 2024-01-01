@@ -85,18 +85,55 @@ stage.on('mouseup touchend', () => {
   isDragging = false;
 });
 
+let history = [];
+let index;
+document.getElementById("arrow-left").addEventListener("click", () => {
+  if (index < 0 || index >= history.length){
+    alert("Out of bounds")
+    index = 0;
+    return;
+  }
+  
+  index-=1;
+  var currentMatrix = history[index];
+  updateGrid(currentMatrix)
+})
+
+document.getElementById("arrow-right").addEventListener("click", () => {
+  if (index < 0 || index >= history.length){
+    alert("Out of bounds")
+    index = history.length - 1;
+    return;
+  }
+
+  index+=1;
+  var currentMatrix = history[index];
+  updateGrid(currentMatrix)
+})
+
+$('#pasue').hide();
+
+let isRunning = false;
+let refreshIntervalId;
 document.getElementById("start").addEventListener("click", () =>{
-
-  setInterval(() => {
-    let matrix = generateMatrix(grid.getChildren(), 60, 120);
-    let rows = matrix.length;
-    let cols = matrix[0].length;
-
-    let nextGen = nextGeneration(matrix, rows, cols)
-
-    updateGrid(nextGen)
-  }, 150);
+    $('#pasue').show();
+    $('#start').hide();
+    refreshIntervalId = setInterval(() => {
+      let matrix = generateMatrix(grid.getChildren(), 60, 120);
+      let rows = matrix.length;
+      let cols = matrix[0].length;
+      history.push(matrix)
+      index = history.length - 1
+      let nextGen = nextGeneration(matrix, rows, cols)
+      updateGrid(nextGen)
+    }, 150);
 });
+
+document.getElementById("pasue").addEventListener("click", () =>{
+  $('#pasue').hide();
+  $('#start').show();
+  clearInterval(refreshIntervalId)
+})
 
 function updateGrid(nextGen){
   var singleLineArray = nextGen.flat(1)
